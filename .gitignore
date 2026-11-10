@@ -1,0 +1,15 @@
+# credenciais (spec §7)
+.env
+**/secrets.h
+**/credentials.h
+sdkconfig
+sdkconfig.old
+# ESP-IDF
+build/
+managed_components/
+# Python
+__pycache__/
+.venv/
+*.db
+.DS_Store
+CLAUDE.local.md
