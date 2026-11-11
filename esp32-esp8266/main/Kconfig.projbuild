@@ -1,0 +1,13 @@
+menu "IDS Wi-Fi"
+
+    config IDS_WIFI_SSID
+        string "SSID do AP autorizado"
+        default ""
+        help
+            Rede propria/autorizada de laboratorio. Fica so no sdkconfig, que esta fora do Git.
+
+    config IDS_WIFI_PASSWORD
+        string "Senha do AP"
+        default ""
+
+endmenu
