@@ -244,18 +244,8 @@ README.md
 - Reconexões e mensagens perdidas não paralisam a captura;
 - Resultados dos testes de coexistência e limitações estão documentados.
 
-## 12. Orientações obrigatórias para a outra IA implementar
 
-1. **Não recriar a ponte serial→MQTT** da versão 1.1; MQTT será executado pelo ESP32.
-2. Começar por um projeto mínimo que teste **STA + promiscuous simultâneos** no modelo real da placa, e não implementar dezenas de módulos antes disso.
-3. Não usar semáforo/mutex como se eles controlassem hardware RF; Wi-Fi driver é o responsável.
-4. Não publicar MQTT nem imprimir logs pesados no callback do sniffer; usar fila e tarefa de telemetria.
-5. Preferir envio não bloqueante via `esp_mqtt_client_enqueue()` e checar conectividade/erros.
-6. Evitar captura de payload e qualquer função ofensiva; somente metadados e testes em rede autorizada.
-7. Entregar cada etapa com arquivos, comando de compilação/flash, configuração e teste de aceitação.
-8. Confirmar **modelo exato do ESP32, ferramenta de desenvolvimento e IP do broker** antes de gerar configurações que dependam desses dados; não inventar pinos, credenciais nem características específicas.
-
-## 13. Fontes técnicas principais
+## 12. Fontes técnicas principais
 
 - Espressif, Wi-Fi Modes (STA + sniffer e callback na tarefa do Wi-Fi): https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/wifi-driver/wifi-modes.html
 - Espressif, Wi-Fi Driver e modo sniffer: https://docs.espressif.com/projects/esp-idf/en/v5.5.6/esp32/api-guides/wifi.html
