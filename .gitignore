@@ -13,3 +13,6 @@ __pycache__/
 *.db
 .DS_Store
 CLAUDE.local.md
+
+# Divisão de commits entre integrantes (uso interno do grupo)
+docs/divisao-commits.md

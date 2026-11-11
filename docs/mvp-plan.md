@@ -13,6 +13,19 @@ Entregar só o que existir de fato:
 - [ ] Protótipo da interface
 - [ ] (se possível) ESP32 conectado ao AP rodando promiscuous
 
+### Etapas até o envio
+
+| Etapa | O que fazer | Pronto quando |
+|---|---|---|
+| 0. Preparação | Confirmar o modelo da placa, instalar o ESP-IDF, adicionar todos como colaboradores, abrir uma Issue por tarefa | `idf.py --version` roda e todos têm acesso |
+| 1. Bancada | Montar o circuito ([schematics](../schematics/README.md)) e testar cada peça sozinha: LED, buzzer, LCD | Foto da montagem tirada |
+| 2. PoC de rádio | STA conectado + promiscuous, contadores por tipo de frame e canal na serial, 10 min rodando | Log salvo em `docs/checkpoint-evidence/` |
+| 3. Aplicação mínima | Protótipo estático do dashboard com dados marcados como `synthetic`; esqueleto do subscriber com SQLite | Print do protótipo |
+| 4. Documentação | `schematics/circuit.png`, diagrama de arquitetura em imagem, README com integrantes e status real | Tudo no `main` |
+| 5. Relatório | Preencher, exportar PDF e enviar | Enviado em 12/11 |
+
+Ordem de corte se o tempo apertar: etapa 3 primeiro, depois o LCD. A etapa 2 é a evidência que mais pesa.
+
 ## Depois do checkpoint
 
 1. **PoC de coexistência** (prioridade máxima): STA conectado + callback promiscuous + contadores na serial; imprimir o canal real; rodar 10 min.
