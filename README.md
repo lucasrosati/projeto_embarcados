@@ -52,6 +52,7 @@ schematics/           circuito (circuit.png)
 ## Documentação
 
 - [Especificação v2 (fonte da verdade)](docs/Especificacao_ESP32_WiFi_IDS_v2_MQTT_Direto.md)
+- [Guia de funcionamento](docs/guia-funcionamento.md): o que o IDS faz, LCD, LEDs e logs
 - [Arquitetura](docs/architecture.md)
 - [Plano do MVP](docs/mvp-plan.md)
 - [Plano de testes](docs/test-plan.md)
