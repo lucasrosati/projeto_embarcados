@@ -1,0 +1,4 @@
+# Valores padrão versionados (sem credenciais). Credenciais ficam no sdkconfig / sdkconfig.esp32dev, fora do Git.
+# Partição de app de 1,5 MB: com Wi-Fi + MQTT o firmware passa de 85% da partição padrão de 1 MB.
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y

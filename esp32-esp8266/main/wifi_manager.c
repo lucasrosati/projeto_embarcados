@@ -8,6 +8,7 @@
 #include "esp_netif.h"
 #include "esp_wifi.h"
 
+#include "ids_mqtt.h"
 #include "ids_types.h"
 #include "sdkconfig.h"
 #include "wifi_sniffer.h"
@@ -39,6 +40,7 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
         xEventGroupSetBits(g_net_events, WIFI_CONNECTED_BIT);
         // Sniffer só depois de associar, e nunca mais desligado (spec §2).
         wifi_sniffer_start();
+        ids_mqtt_start();  // o cliente reconecta sozinho depois; aqui só inicia uma vez
     }
 }
 

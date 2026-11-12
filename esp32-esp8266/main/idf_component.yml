@@ -1,0 +1,8 @@
+## Dependências do componente main (ESP-IDF Component Manager).
+dependencies:
+  # No ESP-IDF 6.x o esp-mqtt saiu do framework e virou componente gerenciado.
+  # No 5.x ele ainda vem embutido, então a dependência só entra a partir da 6.0.
+  espressif/mqtt:
+    version: "^1.0.0"
+    rules:
+      - if: "idf_version >=6.0"

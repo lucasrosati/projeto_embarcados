@@ -8,6 +8,7 @@
 #include "esp_timer.h"
 
 #include "config.h"
+#include "ids_mqtt.h"
 #include "ids_types.h"
 #include "local_ui.h"
 #include "wifi_manager.h"
@@ -28,18 +29,19 @@ static const char *rule_severity(rule_id_t r)
 
 static void handle_stats(const stats_snapshot_t *s)
 {
-    char json[448];
+    char json[512];
     snprintf(json, sizeof(json),
              "{\"schema_version\":2,\"type\":\"stats\",\"device_id\":\"%s\",\"boot_id\":\"%s\",\"seq\":%" PRIu32
              ",\"uptime_ms\":%" PRIu32 ",\"channel\":%u,\"rssi\":%d,\"window_s\":%u,"
              "\"counts\":{\"beacon\":%" PRIu32 ",\"probe_req\":%" PRIu32 ",\"deauth\":%" PRIu32
              ",\"disassoc\":%" PRIu32 "},\"capture_queue_drops\":%" PRIu32 ",\"alert_queue_drops\":%" PRIu32
-             ",\"alerts_suppressed\":%" PRIu32 ",\"wifi_reconnects\":%" PRIu32 ",\"synthetic_injected\":%" PRIu32
-             ",\"source\":\"live\"}",
+             ",\"alerts_suppressed\":%" PRIu32 ",\"mqtt_enqueue_failures\":%" PRIu32 ",\"wifi_reconnects\":%" PRIu32
+             ",\"synthetic_injected\":%" PRIu32 ",\"source\":\"live\"}",
              IDS_DEVICE_ID, s_boot_id, s->seq, s->uptime_ms, s->channel, s->rssi, s->window_s, s->beacon,
              s->probe_req, s->deauth, s->disassoc, s->capture_queue_drops, s->alert_queue_drops,
-             s->alerts_suppressed, s->wifi_reconnects, s->synthetic_injected);
-    ESP_LOGI(TAG, "stats %s", json);  // parte 2: tópico ids/<id>/stats, QoS 0
+             s->alerts_suppressed, ids_mqtt_enqueue_failures(), s->wifi_reconnects, s->synthetic_injected);
+    ESP_LOGI(TAG, "stats %s", json);  // serial só para depuração
+    ids_mqtt_publish(MQTT_TOPIC_STATS, json);  // ids/<id>/stats, QoS 0
     local_ui_show_stats(s);
 }
 
@@ -53,7 +55,8 @@ static void handle_alert(const alert_t *a)
              IDS_DEVICE_ID, s_boot_id, a->seq, s_boot_id, a->uptime_ms, a->channel, rule_name(a->rule),
              rule_severity(a->rule), a->bssid[0], a->bssid[1], a->bssid[2], a->bssid[3], a->bssid[4], a->bssid[5],
              a->count, a->window_s, a->synthetic ? "synthetic" : "live");
-    ESP_LOGW(TAG, "alert %s", json);  // parte 2: tópico ids/<id>/alerts, QoS 1
+    ESP_LOGW(TAG, "alert %s", json);
+    ids_mqtt_publish(MQTT_TOPIC_ALERTS, json);  // ids/<id>/alerts, QoS 1, guardado no outbox se offline
     local_ui_show_alert(a);
 }
 
@@ -66,11 +69,12 @@ static void publish_status(void)
     char json[256];
     snprintf(json, sizeof(json),
              "{\"schema_version\":2,\"type\":\"status\",\"device_id\":\"%s\",\"boot_id\":\"%s\",\"state\":\"online\","
-             "\"uptime_ms\":%" PRIu32 ",\"wifi_connected\":%s,\"sniffer_active\":%s,\"channel\":%u,\"rssi\":%d}",
+             "\"uptime_ms\":%" PRIu32 ",\"wifi_connected\":%s,\"sniffer_active\":%s,\"mqtt_connected\":%s,\"channel\":%u,\"rssi\":%d}",
              IDS_DEVICE_ID, s_boot_id, (uint32_t)(esp_timer_get_time() / 1000),
-             (bits & WIFI_CONNECTED_BIT) ? "true" : "false", (bits & SNIFFER_ACTIVE_BIT) ? "true" : "false", ch,
-             rssi);
-    ESP_LOGI(TAG, "status %s", json);  // parte 2: tópico ids/<id>/status, QoS 1, retido, Last Will "offline"
+             (bits & WIFI_CONNECTED_BIT) ? "true" : "false", (bits & SNIFFER_ACTIVE_BIT) ? "true" : "false",
+             (bits & MQTT_CONNECTED_BIT) ? "true" : "false", ch, rssi);
+    ESP_LOGI(TAG, "status %s", json);
+    ids_mqtt_publish(MQTT_TOPIC_STATUS, json);  // ids/<id>/status, QoS 1, retido; Last Will "offline"
 }
 
 static void telemetry_task(void *arg)
@@ -95,11 +99,19 @@ static void telemetry_task(void *arg)
                 handle_stats(&s);
             }
         }
+        if (bits & NOTIFY_MQTT_UP) {
+            publish_status();  // spec §7: status "online" logo na conexão ao broker
+        }
         if ((int32_t)(xTaskGetTickCount() - next_status) >= 0) {
             publish_status();
             next_status += status_period;
         }
     }
+}
+
+const char *telemetry_boot_id(void)
+{
+    return s_boot_id;
 }
 
 void telemetry_start(void)

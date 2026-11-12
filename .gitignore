@@ -1,5 +1,7 @@
 # credenciais (spec §7)
 .env
+# senhas do Mosquitto (hash), geradas por applications/broker/setup_credentials.py
+applications/broker/passwd
 **/secrets.h
 **/credentials.h
 sdkconfig
@@ -12,10 +14,14 @@ build/
 managed_components/
 .pio/
 compile_commands.json
+.cache/
+.vscode/
 # Python
 __pycache__/
 .venv/
 *.db
+*.db-shm
+*.db-wal
 .DS_Store
 CLAUDE.local.md
 

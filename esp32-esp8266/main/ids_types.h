@@ -53,11 +53,12 @@ typedef struct {
 // Bits do Event Group de conectividade.
 #define WIFI_CONNECTED_BIT BIT0
 #define SNIFFER_ACTIVE_BIT BIT1
-// MQTT_CONNECTED_BIT entra na parte 2.
+#define MQTT_CONNECTED_BIT BIT2
 
 // Bits de Task Notification para o TaskTelemetry.
 #define NOTIFY_STATS (1u << 0)
 #define NOTIFY_ALERT (1u << 1)
+#define NOTIFY_MQTT_UP (1u << 2)  // broker conectou: publicar status "online"
 
 // Criados em app_main antes de qualquer task.
 extern QueueHandle_t g_capture_queue;  // callback/teste sintético -> TaskDetector (frame_meta_t)

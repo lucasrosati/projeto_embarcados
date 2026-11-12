@@ -8,6 +8,7 @@
 #include "esp_timer.h"
 
 #include "config.h"
+#include "ids_mqtt.h"
 #include "lcd1602.h"
 
 // Até quando (uptime em ms) o alerta fica visível. Escrito pelo TaskTelemetry, lido pela task dos LEDs.
@@ -23,14 +24,16 @@ static bool alert_active(void)
     return (int32_t)(atomic_load(&s_alert_until_ms) - now_ms()) > 0;
 }
 
-// LEDs: verde aceso = Wi-Fi conectado e sniffer ligado; piscando = tentando conectar.
+// LEDs: verde aceso = Wi-Fi conectado, sniffer ligado e (se configurado) broker MQTT conectado;
+// piscando = falta alguma dessas conexões.
 // Vermelho pisca rápido enquanto há alerta recente.
 static void led_task(void *arg)
 {
     uint32_t tick = 0;
     for (;;) {
         EventBits_t bits = xEventGroupGetBits(g_net_events);
-        bool online = (bits & WIFI_CONNECTED_BIT) && (bits & SNIFFER_ACTIVE_BIT);
+        bool online = (bits & WIFI_CONNECTED_BIT) && (bits & SNIFFER_ACTIVE_BIT) &&
+                      (!ids_mqtt_enabled() || (bits & MQTT_CONNECTED_BIT));
         gpio_set_level(PIN_LED_STATUS, online ? 1 : ((tick / 5) % 2));
         gpio_set_level(PIN_LED_ALERT, alert_active() ? (tick % 2) : 0);
         tick++;
@@ -62,7 +65,11 @@ void local_ui_show_stats(const stats_snapshot_t *s)
     }
     char l1[32], l2[32];  // o LCD corta em 16 colunas
     if (s->associated) {
-        snprintf(l1, sizeof(l1), "CH%02u %4ddBm  ON", s->channel, s->rssi);
+        const char *net = "ON";  // ON = Wi-Fi ok (MQTT desligado); MQ = broker ok; NB = sem broker
+        if (ids_mqtt_enabled()) {
+            net = (xEventGroupGetBits(g_net_events) & MQTT_CONNECTED_BIT) ? "MQ" : "NB";
+        }
+        snprintf(l1, sizeof(l1), "CH%02u %4ddBm  %s", s->channel, s->rssi, net);
         snprintf(l2, sizeof(l2), "B%" PRIu32 " P%" PRIu32 " D%" PRIu32 " X%" PRIu32, s->beacon, s->probe_req,
                  s->deauth, s->disassoc);
     } else {
