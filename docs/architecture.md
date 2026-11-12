@@ -1,6 +1,7 @@
 # Arquitetura
 
-> Status: **planejada**. Nada abaixo está implementado ainda. Fonte: [especificação v2](Especificacao_ESP32_WiFi_IDS_v2_MQTT_Direto.md), seções 2–8.
+> Status: **implementada e testada na placa real** em 12/11/2026, com o ESP32 no hotspot do celular e o Mosquitto,
+> o back-end e o dashboard no PC da mesma rede. Resultados no [plano de testes](test-plan.md). Fonte: [especificação v2](Especificacao_ESP32_WiFi_IDS_v2_MQTT_Direto.md), seções 2–8.
 
 ![Arquitetura de comunicação](arquitetura-comunicacao.png)
 

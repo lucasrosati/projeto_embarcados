@@ -1,7 +1,7 @@
 # Guia de funcionamento
 
-O que o IDS faz, o que aparece no LCD e nos LEDs e como ler os logs da serial. Vale para o firmware da **parte 1**
-(sem MQTT), testado na placa em 12/11/2026.
+O que o IDS faz, o que aparece no LCD e nos LEDs e como ler os logs da serial. Vale para o firmware com MQTT,
+testado na placa em 12/11/2026.
 
 ## Em uma frase
 
@@ -28,8 +28,9 @@ procura. Um evento detectado é um **indício**, não uma prova. Veja as [observ
 ## O caminho de cada frame
 
 ```text
-rádio ─► callback do sniffer ─► captureQueue ─► TaskDetector ─► alertQueue / stats ─► TaskTelemetry ─► serial + LCD
+rádio ─► callback do sniffer ─► captureQueue ─► TaskDetector ─► alertQueue / stats ─► TaskTelemetry ─► MQTT + serial + LCD
                                                                                          LEDs ◄─ task dos LEDs
+MQTT ─► Mosquitto (PC) ─► back-end Python ─► SQLite ─► WebSocket ─► dashboard no navegador
 ```
 
 1. **Rádio → callback:** o driver Wi-Fi entrega o frame. O callback copia só os metadados (tipo, BSSID, RSSI,
@@ -40,7 +41,8 @@ rádio ─► callback do sniffer ─► captureQueue ─► TaskDetector ─►
    - depois de alertar, espera **30 s** antes de alertar de novo pela mesma regra e pelo mesmo BSSID (*cooldown*);
    - a cada 10 s fecha a janela e entrega um retrato com as contagens.
 3. **`TaskTelemetry`:** acorda na hora quando chega um alerta, ou a cada 10 s quando a janela fecha. Monta o JSON,
-   escreve na serial e atualiza o LCD. A cada 30 s, gera também o `status`.
+   **publica no broker MQTT** pelo Wi-Fi (`esp_mqtt_client_enqueue`, que não bloqueia), escreve na serial e atualiza
+   o LCD. A cada 30 s, e logo que conecta no broker, publica também o `status`.
 4. **Task dos LEDs:** a cada 100 ms, acende ou pisca os LEDs conforme o estado.
 
 Os limiares, a janela e o cooldown podem ser ajustados no `menuconfig` (menu "IDS Wi-Fi").
@@ -50,7 +52,7 @@ Os limiares, a janela e o cooldown podem ser ajustados no `menuconfig` (menu "ID
 ### Tela normal (atualiza a cada 10 s)
 
 ```text
-CH06 -47dBm  ON
+CH06 -47dBm  MQ
 B607 P17 D0 X0
 ```
 
@@ -58,7 +60,9 @@ B607 P17 D0 X0
 |---|---|
 | `CH06` | Canal monitorado, o mesmo da rede conectada |
 | `-47dBm` | Força do sinal do AP. Perto de 0 é forte: -30 é excelente, -70 é fraco, -85 é quase caindo |
-| `ON` | Conectado e sniffer ligado |
+| `MQ` | Wi-Fi, sniffer e broker MQTT conectados |
+| `NB` | Wi-Fi e sniffer ok, mas **sem broker** (Mosquitto desligado ou IP errado). Os stats dessa hora se perdem; os alertas esperam a reconexão |
+| `ON` | Wi-Fi e sniffer ok, MQTT desligado no menuconfig (URI vazia) |
 | `B607` | 607 **beacons** nos últimos 10 s, contando o AP e as redes vizinhas no mesmo canal |
 | `P17` | 17 **probe requests** (aparelhos procurando redes) |
 | `D0` | 0 **deauth** |
@@ -87,7 +91,7 @@ n=20 ..00:01 SIM
 
 | LED | Aceso | Piscando | Apagado |
 |---|---|---|---|
-| **Verde** (GPIO19) | Conectado e sniffer ligado | Procurando a rede | Placa sem firmware ou travada |
+| **Verde** (GPIO19) | Wi-Fi, sniffer e broker conectados | Falta a rede ou o broker | Placa sem firmware ou travada |
 | **Vermelho** (GPIO23) | — | Alerta nos últimos 10 s | Sem alerta |
 
 ## Botão BOOT (teste sintético)
@@ -131,6 +135,9 @@ I (5491) sniffer: promiscuous ligado (gerenciamento), segue o canal do AP
 | `desconectado, reason=...` | Uma tentativa de conexão falhou e ele tenta de novo sozinho. Os códigos estão abaixo |
 | `conectado, ip=... canal=...` | Entrou na rede. O canal é o que será monitorado |
 | `promiscuous ligado` | A partir daqui começa a contar os frames |
+| `mqtt: conectado ao broker ...` | O ESP32 conectou no Mosquitto e já publica |
+| `mqtt: falha de rede ate o broker` | Broker desligado, IP errado ou Mac em outra rede. Ele tenta de novo sozinho |
+| `mqtt: broker recusou a conexao, codigo=5` | Usuário/senha errados: rode `setup_credentials.py` e regrave |
 
 Códigos de `reason` mais comuns:
 
@@ -145,7 +152,7 @@ Códigos de `reason` mais comuns:
 ```json
 {"type":"stats","seq":79,"uptime_ms":790151,"channel":6,"rssi":-45,"window_s":10,
  "counts":{"beacon":646,"probe_req":18,"deauth":16,"disassoc":0},
- "capture_queue_drops":0,"alert_queue_drops":0,"alerts_suppressed":1,
+ "capture_queue_drops":0,"alert_queue_drops":0,"alerts_suppressed":1,"mqtt_enqueue_failures":0,
  "wifi_reconnects":0,"synthetic_injected":75,"source":"live"}
 ```
 
@@ -156,6 +163,7 @@ Códigos de `reason` mais comuns:
 | `counts` | As 4 contagens da janela, **só frames reais** |
 | `capture_queue_drops` | Frames perdidos porque a fila encheu (acumulado). **Deve ficar em 0** |
 | `alerts_suppressed` | Alertas bloqueados pelo cooldown (acumulado) |
+| `mqtt_enqueue_failures` | Mensagens que não puderam ir ao broker (acumulado): sobe quando o broker cai |
 | `wifi_reconnects` | Quantas vezes a conexão caiu e voltou |
 | `synthetic_injected` | Total de frames falsos injetados pelo botão |
 
@@ -185,9 +193,25 @@ I detector: DEAUTH_BURST suprimido pelo cooldown de 30 s
 
 É o "estou vivo" do dispositivo. Na parte 2, ele vira o indicador online/offline do dashboard.
 
+## Dashboard
+
+Com broker e back-end rodando, abra http://127.0.0.1:8000 (veja "Como rodar" no README).
+
+| Parte | O que mostra |
+|---|---|
+| **Estado** | Online/offline e há quanto tempo veio a última mensagem. Fica offline se chegar o Last Will (o broker percebeu que o ESP32 sumiu) ou se passar 75 s sem nada |
+| **Canal, RSSI, uptime, boot** | Os mesmos valores do LCD e do `stats` |
+| **Alertas no período** | Total, separando `live` e sintéticos |
+| **Frames perdidos / Falhas MQTT** | `capture_queue_drops` e `mqtt_enqueue_failures` da última janela |
+| **Gráficos** | Beacons e probe requests; deauth e disassoc. Um **buraco** na linha indica janelas que não chegaram (broker fora, placa desligada) |
+| **Alertas** | Um por linha, com o BSSID mascarado e a origem. Alerta novo aparece no topo, destacado |
+| **Rodapé** | Mensagens aceitas, duplicadas (QoS 1 repetido) e rejeitadas (fora do contrato) pelo back-end |
+
+O selo **"tempo real ativo"** no canto indica que o navegador está recebendo eventos do back-end. Um aviso amarelo
+aparece quando o dispositivo selecionado é de teste (`synthetic-01`, gerado por `tools/publish_synthetic.py`).
+
 ## Onde isso se encaixa na arquitetura
 
-Hoje, o fim do caminho é a **serial e o LCD**. Os JSON de `stats`, `alert` e `status` são exatamente as mensagens que,
-na parte 2, o ESP32 vai **publicar por MQTT pelo próprio Wi-Fi** nos tópicos `ids/esp32-ids-01/stats`, `/alerts` e
-`/status`. O broker Mosquitto no PC recebe, o back-end grava no SQLite e o dashboard mostra em tempo real. Veja a
-[arquitetura](architecture.md).
+Os JSON de `stats`, `alert` e `status` são publicados pelo próprio ESP32 nos tópicos `ids/esp32-ids-01/stats`
+(QoS 0), `/alerts` (QoS 1) e `/status` (QoS 1, retido, com Last Will). A serial só repete o que foi publicado, para
+depuração: **não existe ponte serial→MQTT**. Veja a [arquitetura](architecture.md).

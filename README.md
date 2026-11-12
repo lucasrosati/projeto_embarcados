@@ -14,11 +14,37 @@ para um broker Mosquitto local. Um backend Python persiste os dados em SQLite e 
 
 | Parte | Situação |
 |---|---|
-| Especificação e arquitetura | Definidas (`docs/`) |
-| Firmware (`/esp32-esp8266`) | Parte 1 testada na placa: STA + promiscuous, detector, LCD/LEDs, teste sintético. Falta MQTT |
-| Backend (`/applications/backend`) | Não iniciado |
-| Frontend (`/applications/frontend`) | Não iniciado |
+| Especificação e arquitetura | Implementada e testada (`docs/`). Pendente: comparação formal do teste B |
+| Firmware (`/esp32-esp8266`) | Testado na placa: STA + promiscuous, detector, LCD/LEDs, teste sintético e publicação MQTT direta |
+| Broker (`/applications/broker`) | Mosquitto local com senha e ACL, testado |
+| Backend (`/applications/backend`) | Testado: subscriber MQTT, validação, deduplicação, SQLite, REST e WebSocket |
+| Frontend (`/applications/frontend`) | Testado com dados reais: estado, gráficos ao vivo, alertas, histórico |
 | Esquemático (`/schematics`) | Circuito montado e testado (LCD, LEDs) |
+
+## Como rodar
+
+Pré-requisitos: Mosquitto (`brew install mosquitto`), Python 3, PlatformIO (VS Code).
+
+```sh
+# 1. Credenciais (uma vez, ou quando o IP do PC mudar). Grava senhas só em arquivos fora do Git.
+python3 applications/broker/setup_credentials.py            # opcional: --broker-ip <IP do PC>
+
+# 2. Broker (terminal 1)
+applications/broker/start_broker.sh
+
+# 3. Back-end + dashboard (terminal 2)
+cd applications/backend
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # uma vez
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000          # abra http://127.0.0.1:8000
+
+# 4. Firmware (terminal 3): SSID/senha no menuconfig, depois gravar
+cd esp32-esp8266
+~/.platformio/penv/bin/pio run -t menuconfig
+~/.platformio/penv/bin/pio run -t upload -t monitor --upload-port /dev/cu.usbserial-XXXX
+```
+
+Sem a placa: `applications/backend/.venv/bin/python applications/backend/tools/publish_synthetic.py` publica dados
+sintéticos. O que cada número significa está no [guia de funcionamento](docs/guia-funcionamento.md).
 
 ## Arquitetura
 

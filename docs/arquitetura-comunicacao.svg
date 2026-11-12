@@ -20,9 +20,9 @@
 
   <!-- título -->
   <text x="60" y="58" font-size="28" font-weight="bold" fill="#1a1a1a">Arquitetura de comunicação — ESP32 Wi-Fi IDS (MQTT direto)</text>
-  <text x="60" y="88" font-size="15" fill="#666">Implementado até agora: STA conectado + promiscuous com contadores na serial (PoC). MQTT, back-end e dashboard: planejados.</text>
-  <rect x="1470" y="34" width="170" height="34" rx="17" fill="#fff4e5" stroke="#c05621" stroke-width="1.5"/>
-  <text x="1555" y="57" font-size="15" font-weight="bold" fill="#c05621" text-anchor="middle">PLANEJADA</text>
+  <text x="60" y="88" font-size="15" fill="#666">Implementado e testado na placa real em 12/11/2026 (ESP32 no hotspot do celular, broker e back-end no PC da mesma rede).</text>
+  <rect x="1470" y="34" width="170" height="34" rx="17" fill="#eefaf0" stroke="#2f855a" stroke-width="1.5"/>
+  <text x="1555" y="57" font-size="15" font-weight="bold" fill="#2f855a" text-anchor="middle">TESTADA</text>
 
   <!-- ar / frames -->
   <rect x="60" y="130" width="380" height="110" rx="14" fill="#fafafa" stroke="#888" stroke-width="1.6" stroke-dasharray="6 5"/>
