@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESP32 Wi-Fi IDS</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>ESP32 Wi-Fi IDS</h1>
+      <p class="subtitle">Frames 802.11 de gerenciamento capturados pelo ESP32 e publicados por MQTT</p>
+    </div>
+    <div class="conn" id="conn" role="status" aria-live="polite">
+      <span class="conn-dot" aria-hidden="true"></span><span id="conn-text">conectando ao back-end…</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="filters" aria-label="Filtros">
+      <label>Dispositivo
+        <select id="device"></select>
+      </label>
+      <fieldset class="range" aria-label="Período">
+        <legend>Período</legend>
+        <button type="button" data-minutes="15">15 min</button>
+        <button type="button" data-minutes="60" aria-pressed="true">1 h</button>
+        <button type="button" data-minutes="360">6 h</button>
+        <button type="button" data-minutes="1440">24 h</button>
+      </fieldset>
+      <label>Origem dos alertas
+        <select id="source">
+          <option value="">todas</option>
+          <option value="live">live (rádio)</option>
+          <option value="synthetic">synthetic (teste)</option>
+        </select>
+      </label>
+    </section>
+
+    <div class="banner" id="synthetic-banner" hidden>
+      Dispositivo de <strong>teste</strong>: todos os dados abaixo são sintéticos (source = synthetic).
+    </div>
+
+    <section class="tiles" aria-label="Estado do dispositivo">
+      <div class="tile tile-state">
+        <span class="tile-label">Estado</span>
+        <span class="tile-value" id="t-state"><span class="status-icon" aria-hidden="true">●</span> <span>—</span></span>
+        <span class="tile-note" id="t-seen">sem dados</span>
+      </div>
+      <div class="tile"><span class="tile-label">Canal</span><span class="tile-value" id="t-channel">—</span><span class="tile-note" id="t-rssi">RSSI —</span></div>
+      <div class="tile"><span class="tile-label">Uptime</span><span class="tile-value" id="t-uptime">—</span><span class="tile-note" id="t-boot">boot —</span></div>
+      <div class="tile"><span class="tile-label">Alertas no período</span><span class="tile-value" id="t-alerts">—</span><span class="tile-note" id="t-alerts-note">—</span></div>
+      <div class="tile"><span class="tile-label">Frames perdidos</span><span class="tile-value" id="t-drops">—</span><span class="tile-note">fila de captura cheia</span></div>
+      <div class="tile"><span class="tile-label">Falhas MQTT</span><span class="tile-value" id="t-mqttfail">—</span><span class="tile-note" id="t-reconnects">reconexões Wi-Fi —</span></div>
+    </section>
+
+    <section class="charts">
+      <figure class="card">
+        <figcaption>
+          <h2>Beacons e probe requests</h2>
+          <p>Frames por janela de 10 s no canal monitorado</p>
+        </figcaption>
+        <div class="legend" id="legend-traffic"></div>
+        <div class="chart-box"><canvas id="chart-traffic" aria-label="Gráfico de beacons e probe requests por janela"></canvas></div>
+      </figure>
+      <figure class="card">
+        <figcaption>
+          <h2>Deauth e disassoc</h2>
+          <p>Frames por janela de 10 s, somando todos os BSSIDs. O alerta usa o limiar por BSSID (≥ 20 deauth / ≥ 15 disassoc)</p>
+        </figcaption>
+        <div class="legend" id="legend-mgmt"></div>
+        <div class="chart-box"><canvas id="chart-mgmt" aria-label="Gráfico de deauth e disassoc por janela"></canvas></div>
+      </figure>
+    </section>
+
+    <details class="card table-view">
+      <summary>Ver tabela das janelas</summary>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Horário</th><th class="num">Beacon</th><th class="num">Probe</th><th class="num">Deauth</th><th class="num">Disassoc</th><th class="num">RSSI</th><th class="num">Canal</th></tr></thead>
+          <tbody id="windows-body"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Alertas</h2>
+        <p>Mais recentes primeiro. BSSID mascarado. Um alerta é um indício, não prova de ataque.</p>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Horário</th><th>Regra</th><th>Severidade</th><th>BSSID</th><th class="num">Contagem</th><th class="num">Janela</th><th>Origem</th><th>event_id</th></tr></thead>
+          <tbody id="alerts-body"><tr class="empty"><td colspan="8">Nenhum alerta no período.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer">—</footer>
+</body>
+</html>
