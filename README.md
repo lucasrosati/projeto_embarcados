@@ -88,4 +88,7 @@ schematics/           circuito (circuit.png)
 
 | Nº | Nome | GitHub | Responsabilidade |
 |---|---|---|---|
-| 1 | _a preencher_ | | |
+| 1 | Vinicius Gomes Beltrao (representante) | [vinigbeltrao](https://github.com/vinigbeltrao) | Firmware do ESP32 (Wi-Fi, captura, detecção e MQTT), montagem e testes do circuito, back-end e documentação |
+| 2 | Leticia Lopes Morerira | — | Ideação e brainstorming do projeto; pesquisa sobre ataques de desconexão em Wi-Fi |
+| 3 | Icaro Barros Sampaio | [IcaroBarros](https://github.com/IcaroBarros) | Ideação e brainstorming; prototipação; desenho da arquitetura de comunicação |
+| 4 | Lucas Rosati | [lucasrosati](https://github.com/lucasrosati) | Dashboard; engenharia de IA (prompts e especificação) para definir a arquitetura |
