@@ -4,9 +4,14 @@
 **/credentials.h
 sdkconfig
 sdkconfig.old
+# PlatformIO grava o sdkconfig por ambiente (contém SSID/senha)
+sdkconfig.*
+!sdkconfig.defaults
 # ESP-IDF
 build/
 managed_components/
+.pio/
+compile_commands.json
 # Python
 __pycache__/
 .venv/
