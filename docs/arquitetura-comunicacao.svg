@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="960" viewBox="0 0 1700 960" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#888"/>
+    </marker>
+    <style>
+      .t{font-size:16px;font-weight:bold;fill:#1a1a1a;text-anchor:middle}
+      .s{font-size:13px;fill:#333;text-anchor:middle}
+      .l{font-size:13px;fill:#333}
+      .n{font-size:12px;fill:#777}
+      .m{font-family:Menlo, Consolas, monospace;font-size:13px;fill:#1a1a1a}
+      .ln{stroke:#333;stroke-width:2;fill:none}
+      .dl{stroke:#888;stroke-width:1.6;stroke-dasharray:6 5;fill:none}
+    </style>
+  </defs>
+  <rect width="1700" height="960" fill="#ffffff"/>
+
+  <!-- título -->
+  <text x="60" y="58" font-size="28" font-weight="bold" fill="#1a1a1a">Arquitetura de comunicação — ESP32 Wi-Fi IDS (MQTT direto)</text>
+  <text x="60" y="88" font-size="15" fill="#666">Implementado até agora: STA conectado + promiscuous com contadores na serial (PoC). MQTT, back-end e dashboard: planejados.</text>
+  <rect x="1470" y="34" width="170" height="34" rx="17" fill="#fff4e5" stroke="#c05621" stroke-width="1.5"/>
+  <text x="1555" y="57" font-size="15" font-weight="bold" fill="#c05621" text-anchor="middle">PLANEJADA</text>
+
+  <!-- ar / frames -->
+  <rect x="60" y="130" width="380" height="110" rx="14" fill="#fafafa" stroke="#888" stroke-width="1.6" stroke-dasharray="6 5"/>
+  <text x="250" y="162" class="t">Ar — canal fixo do AP (2,4 GHz)</text>
+  <text x="250" y="190" class="s">frames 802.11 de gerenciamento</text>
+  <text x="250" y="214" class="s">beacon · probe request · deauth · disassoc</text>
+
+  <line x1="250" y1="240" x2="250" y2="306" class="ln" marker-end="url(#a)"/>
+  <text x="262" y="268" class="l">captura passiva (promiscuous)</text>
+  <text x="262" y="288" class="n">só metadados, nunca payload</text>
+
+  <!-- ESP32 -->
+  <rect x="60" y="310" width="380" height="400" rx="14" fill="#eef4ff" stroke="#2b6cb0" stroke-width="2"/>
+  <text x="250" y="338" class="t">ESP32 (ESP-WROOM-32)</text>
+  <text x="250" y="358" class="n" text-anchor="middle">um rádio: STA conectado + promiscuous no mesmo canal</text>
+
+  <g fill="#ffffff" stroke="#2b6cb0" stroke-width="1.2">
+    <rect x="85" y="375" width="330" height="38" rx="8"/>
+    <rect x="85" y="427" width="330" height="38" rx="8"/>
+    <rect x="85" y="479" width="330" height="38" rx="8"/>
+    <rect x="85" y="531" width="330" height="38" rx="8"/>
+    <rect x="85" y="583" width="330" height="38" rx="8"/>
+    <rect x="85" y="635" width="330" height="38" rx="8"/>
+  </g>
+  <text x="250" y="399" class="s">callback do sniffer (task do driver Wi-Fi)</text>
+  <text x="250" y="451" class="s">captureQueue</text>
+  <text x="250" y="503" class="s">TaskDetector — janelas de 10 s, limiares</text>
+  <text x="250" y="555" class="s">alertQueue + Task Notification</text>
+  <text x="250" y="607" class="s">TaskTelemetry — JSON, Event Group</text>
+  <text x="250" y="659" class="s">esp-mqtt — enqueue não bloqueante</text>
+  <g class="ln" stroke-width="1.5">
+    <line x1="250" y1="413" x2="250" y2="425" marker-end="url(#a)"/>
+    <line x1="250" y1="465" x2="250" y2="477" marker-end="url(#a)"/>
+    <line x1="250" y1="517" x2="250" y2="529" marker-end="url(#a)"/>
+    <line x1="250" y1="569" x2="250" y2="581" marker-end="url(#a)"/>
+    <line x1="250" y1="621" x2="250" y2="633" marker-end="url(#a)"/>
+  </g>
+
+  <!-- saídas locais -->
+  <line x1="150" y1="710" x2="150" y2="786" class="ln" marker-end="url(#a)"/>
+  <line x1="350" y1="710" x2="350" y2="786" class="ln" marker-end="url(#a)"/>
+  <text x="250" y="754" class="n" text-anchor="middle">saídas locais</text>
+  <rect x="60" y="790" width="180" height="80" rx="12" fill="#ffffff" stroke="#2b6cb0" stroke-width="1.5"/>
+  <text x="150" y="822" class="t" font-size="15">LCD 16x2</text>
+  <text x="150" y="846" class="s">I2C · GPIO21 / GPIO22</text>
+  <rect x="260" y="790" width="180" height="80" rx="12" fill="#ffffff" stroke="#2b6cb0" stroke-width="1.5"/>
+  <text x="350" y="816" class="t" font-size="15">LEDs</text>
+  <text x="350" y="838" class="s">GPIO23 · alerta</text>
+  <text x="350" y="858" class="s">GPIO19 · status</text>
+
+  <!-- ESP32 -> roteador (sai do esp-mqtt) -->
+  <path d="M415,654 H462 V455 H556" class="ln" marker-end="url(#a)"/>
+  <text x="512" y="443" class="l" text-anchor="middle">Wi-Fi STA</text>
+  <text x="512" y="475" class="l" text-anchor="middle">MQTT/TCP</text>
+
+  <!-- roteador -->
+  <rect x="560" y="400" width="240" height="110" rx="14" fill="#f0f0f0" stroke="#555" stroke-width="2"/>
+  <text x="680" y="440" class="t">Roteador / AP</text>
+  <text x="680" y="464" class="s">rede própria / autorizada</text>
+  <text x="680" y="486" class="s">canal 2,4 GHz fixo · 20 MHz</text>
+
+  <!-- AP também emite os frames -->
+  <path d="M680,400 V185 H444" class="dl" marker-end="url(#g)"/>
+  <text x="692" y="292" class="n">o AP (e outros dispositivos)</text>
+  <text x="692" y="310" class="n">emitem os frames monitorados</text>
+
+  <!-- roteador -> PC -->
+  <text x="850" y="443" class="l" text-anchor="middle">LAN</text>
+  <text x="850" y="475" class="l" text-anchor="middle">TCP 1883</text>
+
+  <!-- USB serial (debug) -->
+  <line x1="440" y1="690" x2="896" y2="690" class="dl" marker-end="url(#g)"/>
+  <text x="668" y="680" class="n" text-anchor="middle">USB serial: só gravação e depuração</text>
+  <text x="668" y="708" class="n" text-anchor="middle">não transporta dados do dashboard</text>
+
+  <!-- PC -->
+  <rect x="900" y="130" width="740" height="770" rx="16" fill="#f8f8f8" stroke="#555" stroke-width="2"/>
+  <text x="920" y="162" font-size="17" font-weight="bold" fill="#1a1a1a">PC na LAN</text>
+  <text x="920" y="184" class="n">IP local · broker nunca exposto à internet</text>
+
+  <line x1="800" y1="455" x2="936" y2="455" class="ln" marker-end="url(#a)"/>
+
+  <!-- tópicos -->
+  <rect x="940" y="204" width="660" height="150" rx="10" fill="#ffffff" stroke="#bbb" stroke-width="1.2"/>
+  <text x="960" y="232" font-size="14" font-weight="bold" fill="#1a1a1a">Tópicos MQTT publicados pelo ESP32</text>
+  <text x="960" y="264" class="m">ids/esp32-ids-01/stats</text>
+  <text x="1200" y="264" class="l">QoS 0 · a cada 10 s</text>
+  <text x="960" y="296" class="m">ids/esp32-ids-01/alerts</text>
+  <text x="1200" y="296" class="l">QoS 1 · sob demanda, cooldown 30 s</text>
+  <text x="960" y="328" class="m">ids/esp32-ids-01/status</text>
+  <text x="1200" y="328" class="l">QoS 1 · retido · 30 s · Last Will "offline"</text>
+
+  <!-- mosquitto -->
+  <rect x="940" y="400" width="300" height="110" rx="14" fill="#fff4e5" stroke="#c05621" stroke-width="2"/>
+  <text x="1090" y="440" class="t">Broker Mosquitto</text>
+  <text x="1090" y="464" class="s">porta 1883 · usuário e senha</text>
+  <text x="1090" y="486" class="s">payload JSON (schema_version 2)</text>
+
+  <line x1="1090" y1="510" x2="1090" y2="576" class="ln" marker-end="url(#a)"/>
+  <text x="1102" y="548" class="l">subscribe ids/esp32-ids-01/#</text>
+
+  <!-- back-end -->
+  <rect x="940" y="580" width="300" height="110" rx="14" fill="#eefaf0" stroke="#2f855a" stroke-width="2"/>
+  <text x="1090" y="620" class="t">Back-end Python</text>
+  <text x="1090" y="644" class="s">subscriber paho-mqtt + FastAPI</text>
+  <text x="1090" y="666" class="s">valida JSON · deduplica event_id</text>
+
+  <!-- sqlite -->
+  <line x1="1244" y1="635" x2="1296" y2="635" class="ln" marker-start="url(#a)" marker-end="url(#a)"/>
+  <text x="1270" y="624" class="n" text-anchor="middle">grava/lê</text>
+  <rect x="1300" y="580" width="300" height="110" rx="14" fill="#eefaf0" stroke="#2f855a" stroke-width="2"/>
+  <text x="1450" y="620" class="t">SQLite</text>
+  <text x="1450" y="644" class="s">stats · alerts · status</text>
+  <text x="1450" y="666" class="s">received_at (UTC) · event_id único</text>
+
+  <line x1="1090" y1="690" x2="1090" y2="756" class="ln" marker-end="url(#a)"/>
+  <text x="1102" y="719" class="l">WebSocket (tempo real)</text>
+  <text x="1102" y="738" class="l">HTTP (histórico)</text>
+
+  <!-- dashboard -->
+  <rect x="940" y="760" width="300" height="110" rx="14" fill="#f3eefe" stroke="#6b46c1" stroke-width="2"/>
+  <text x="1090" y="800" class="t">Dashboard (navegador)</text>
+  <text x="1090" y="824" class="s">HTML/CSS/JS + Chart.js</text>
+  <text x="1090" y="846" class="s">estado, gráficos, alertas, histórico</text>
+
+  <!-- segurança -->
+  <rect x="1300" y="760" width="300" height="110" rx="12" fill="#ffffff" stroke="#bbb" stroke-width="1.2" stroke-dasharray="5 4"/>
+  <text x="1318" y="788" font-size="14" font-weight="bold" fill="#1a1a1a">Segurança</text>
+  <text x="1318" y="812" class="l">credenciais fora do Git</text>
+  <text x="1318" y="834" class="l">broker com autenticação, só na LAN</text>
+  <text x="1318" y="856" class="l">só metadados · sem função ofensiva</text>
+
+  <!-- legenda -->
+  <line x1="60" y1="922" x2="110" y2="922" class="ln" marker-end="url(#a)"/>
+  <text x="120" y="927" class="l">fluxo de dados</text>
+  <line x1="250" y1="922" x2="300" y2="922" class="dl" marker-end="url(#g)"/>
+  <text x="310" y="927" class="l">contexto / só depuração</text>
+</svg>

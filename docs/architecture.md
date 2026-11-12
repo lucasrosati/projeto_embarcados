@@ -2,6 +2,11 @@
 
 > Status: **planejada**. Nada abaixo está implementado ainda. Fonte: [especificação v2](Especificacao_ESP32_WiFi_IDS_v2_MQTT_Direto.md), seções 2–8.
 
+![Arquitetura de comunicação](arquitetura-comunicacao.png)
+
+Fonte editável: [arquitetura-comunicacao.svg](arquitetura-comunicacao.svg). Para regerar o PNG: abrir o SVG no Chrome
+headless com `--screenshot`.
+
 ## Fluxo do dado
 
 ```text
