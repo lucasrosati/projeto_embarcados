@@ -1,0 +1,13 @@
+# Quem pode o quê. Usuários e senhas ficam em "passwd" (gerado por setup_credentials.py, fora do Git).
+
+# ESP32: só publica nos próprios tópicos (inclui o Last Will em .../status).
+user esp32-ids-01
+topic write ids/esp32-ids-01/#
+
+# Back-end: só lê.
+user ids-backend
+topic read ids/#
+
+# Ferramenta de teste (tools/publish_synthetic.py): publica dados sintéticos num device_id separado.
+user ids-tester
+topic write ids/synthetic-01/#
