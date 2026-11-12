@@ -15,10 +15,10 @@ para um broker Mosquitto local. Um backend Python persiste os dados em SQLite e 
 | Parte | Situação |
 |---|---|
 | Especificação e arquitetura | Definidas (`docs/`) |
-| Firmware (`/esp32-esp8266`) | Não iniciado. Próximo passo: PoC STA + promiscuous |
+| Firmware (`/esp32-esp8266`) | Parte 1 testada na placa: STA + promiscuous, detector, LCD/LEDs, teste sintético. Falta MQTT |
 | Backend (`/applications/backend`) | Não iniciado |
 | Frontend (`/applications/frontend`) | Não iniciado |
-| Esquemático (`/schematics`) | Não iniciado |
+| Esquemático (`/schematics`) | Circuito montado e testado (LCD, LEDs) |
 
 ## Arquitetura
 
@@ -55,6 +55,7 @@ schematics/           circuito (circuit.png)
 - [Arquitetura](docs/architecture.md)
 - [Plano do MVP](docs/mvp-plan.md)
 - [Plano de testes](docs/test-plan.md)
+- [Observações de campo](docs/observacoes-de-campo.md): eventos suspeitos que não significam ataque
 
 ## Integrantes
 
