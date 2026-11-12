@@ -4,10 +4,45 @@ menu "IDS Wi-Fi"
         string "SSID do AP autorizado"
         default ""
         help
-            Rede propria/autorizada de laboratorio. Fica so no sdkconfig, que esta fora do Git.
+            Rede propria/autorizada de laboratorio (2,4 GHz). Fica so no sdkconfig, que esta fora do Git.
 
     config IDS_WIFI_PASSWORD
         string "Senha do AP"
         default ""
+
+    config IDS_DEVICE_ID
+        string "ID do dispositivo"
+        default "esp32-ids-01"
+        help
+            Usado nos payloads e nos topicos MQTT (ids/<id>/...).
+
+    config IDS_WINDOW_S
+        int "Janela de deteccao e de estatisticas (s)"
+        range 1 60
+        default 10
+
+    config IDS_DEAUTH_THRESHOLD
+        int "DEAUTH_BURST: deauth por BSSID na janela"
+        range 2 1000
+        default 20
+
+    config IDS_DISASSOC_THRESHOLD
+        int "DISASSOC_BURST: disassoc por BSSID na janela"
+        range 2 1000
+        default 15
+
+    config IDS_COOLDOWN_S
+        int "Cooldown de alerta por regra e BSSID (s)"
+        range 0 3600
+        default 30
+
+    config IDS_SYNTHETIC_PERIOD_S
+        int "Teste sintetico automatico: periodo (s), 0 = desligado"
+        range 0 3600
+        default 0
+        help
+            Injeta no detector, a cada periodo, uma rajada sintetica (alterna deauth e disassoc) com BSSID
+            ficticio e alerta marcado source=synthetic. Nada e transmitido pelo radio. O botao BOOT injeta
+            uma rajada de deauth a qualquer momento, independente desta opcao.
 
 endmenu
