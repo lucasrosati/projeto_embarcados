@@ -19,6 +19,6 @@ python3 setup_credentials.py               # uma vez (ou para trocar as senhas);
 ```
 
 - **Se o IP do PC mudar** (por exemplo, o hotspot reconectou), rode `python3 setup_credentials.py --broker-ip <novo IP>`
-  e regrave o ESP32. Esse comando também gera senhas novas, então reinicie o back-end.
+  e siga a ordem do README (seção "Mudou de rede ou o IP do PC mudou"): o comando gera senhas novas, então broker, back-end e ESP32 precisam ser reiniciados ou regravados.
 - **Segurança:** não abra a porta 1883 para a internet (sem *port forwarding*). Os tópicos e o contrato de dados estão em
   [docs/architecture.md](../../docs/architecture.md#tópicos-mqtt).

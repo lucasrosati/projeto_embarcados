@@ -88,9 +88,14 @@ def main() -> None:
     print(f"Usuários criados em {passwd.relative_to(ROOT)}: {', '.join(USERS.values())}")
     print(f"Credenciais do back-end em {BACKEND_ENV.relative_to(ROOT)}")
     if patched:
-        print(f"Firmware configurado em esp32-esp8266/{', '.join(patched)}: regrave o ESP32 (pio run -t upload)")
+        print(f"Firmware configurado em esp32-esp8266/{', '.join(patched)}.")
     else:
         print("Nenhum sdkconfig encontrado: compile o firmware uma vez e rode este script de novo.")
+
+    print("\nAs senhas mudaram. Agora, nesta ordem:")
+    print("  1. Reinicie o broker:   Ctrl+C no terminal dele e applications/broker/start_broker.sh")
+    print("  2. Reinicie o back-end: Ctrl+C e .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000")
+    print("  3. Grave o ESP32:       pio run -t upload --upload-port /dev/cu.usbserial-XXXX")
 
 
 if __name__ == "__main__":

@@ -46,6 +46,29 @@ cd esp32-esp8266
 Sem a placa: `applications/backend/.venv/bin/python applications/backend/tools/publish_synthetic.py` publica dados
 sintéticos. O que cada número significa está no [guia de funcionamento](docs/guia-funcionamento.md).
 
+### Mudou de rede ou o IP do PC mudou
+
+O ESP32 procura o broker pelo IP do PC, que fica gravado no firmware. Quando você troca de rede (ou o hotspot
+reconecta e o PC recebe outro IP):
+
+1. Rode `python3 applications/broker/setup_credentials.py`. Ele detecta o IP novo e gera **senhas novas** para o broker,
+   o back-end e o firmware.
+2. **Reinicie o broker** (`Ctrl+C` no terminal dele e `applications/broker/start_broker.sh` de novo).
+3. **Reinicie o back-end** (`Ctrl+C` e o comando `uvicorn` de novo).
+4. **Grave o ESP32 de novo** (`pio run -t upload ...`). Se a rede Wi-Fi também mudou, troque o SSID e a senha no
+   `menuconfig` antes.
+
+O broker e o back-end só leem as senhas quando ligam. Se pular os passos 2 ou 3, eles continuam com as senhas antigas.
+
+| Sintoma no monitor serial | Causa | O que fazer |
+|---|---|---|
+| `broker recusou a conexao, codigo=5` | Senha do ESP32 diferente da do broker | Passos 2 e 4 |
+| `falha de rede ate o broker` | Broker desligado ou IP errado no firmware | Ligue o broker; se o IP mudou, passos 1 a 4 |
+| `desconectado, reason=201` | Rede Wi-Fi não encontrada (fora de alcance ou 5 GHz) | Confira SSID/senha no `menuconfig` e a banda 2,4 GHz |
+
+Sempre que o firmware for gravado, o `menuconfig` precisa ter sido salvo antes: ele só altera um arquivo no PC
+(`sdkconfig.esp32dev`), e a placa recebe as mudanças na gravação.
+
 ## Arquitetura
 
 ```text
